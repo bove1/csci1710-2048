@@ -2,7 +2,7 @@
 
 option problem_type temporal
 option max_tracelength 5
-option min_tracelength  3
+option min_tracelength 2
 
 one sig Board {
     squares : pfunc Int -> Int -> Square
@@ -259,15 +259,52 @@ pred downPushed {
     }
 }
 
+pred swipeRight {
+    next_state rightPushed
+    mergeOrMaintain
+    rowsPreserved
+
+    let finalOrdering = {c1: Cell, c2: Cell | {
+            c1 in Square.cell'
+            c2 in Square.cell'
+            c1.location' -> c2.location' in right
+    }} | {
+
+        all c1: Cell, c2: Cell {{
+            c1 in Square.cell
+            c2 in Square.cell
+            c1.location -> c2.location in ^right
+            no c3 : Square.cell {
+                c1.location -> c3.location in ^right
+                c3.location -> c2.location in ^right
+            }
+        } => {
+            {
+                c1 -> c2 in finalOrdering
+            } or {
+                some c1.child
+                c1.child -> c2 in finalOrdering
+            } or {
+                some c2.child
+                c1 -> c2.child in finalOrdering
+            } or {
+                some c1.child and some c2.child
+                c1.child -> c2.child in finalOrdering
+            } or {
+                some c1.child
+                c1.child = c2.child
+            }
+        }
+    }}
+}
+
 run {
     fourByFour
     ordered
     cellWellFormed
     init
     parenthoodWellFormed
-    always mergeOrMaintain
-    always rowsPreserved
-    always rightPushed
-    Square.cell != Square.cell'
-    Square.cell' != Square.cell''
-} for exactly 9 Square, 7 Cell
+    guardRight
+    swipeRight
+    #{Square.cell'} = 2
+} for exactly 9 Square, 6 Cell
