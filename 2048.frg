@@ -216,6 +216,49 @@ pred rowsPreserved {
     }
 }
 
+pred colsPreserved {
+    all c: Square.cell {
+        c in Square.cell' => {
+            c.location -> c.location' in ^(up + down + iden)
+        }
+        c.child in Square.cell' => {
+            c.location -> c.child.location' in ^(up + down + iden)
+        }
+    }
+}
+
+pred rightPushed {
+    all s: Square {
+        some s.cell => {
+            no s.right or some s.right.cell
+        }
+    }
+}
+
+pred leftPushed {
+    all s: Square {
+        some s.cell => {
+            no s.left or some s.left.cell
+        }
+    }
+}
+
+pred upPushed {
+    all s: Square {
+        some s.cell => {
+            no s.up or some s.up.cell
+        }
+    }
+}
+
+pred downPushed {
+    all s: Square {
+        some s.cell => {
+            no s.down or some s.down.cell
+        }
+    }
+}
+
 run {
     fourByFour
     ordered
@@ -224,6 +267,7 @@ run {
     parenthoodWellFormed
     always mergeOrMaintain
     always rowsPreserved
+    always rightPushed
     Square.cell != Square.cell'
     Square.cell' != Square.cell''
 } for exactly 9 Square, 7 Cell
