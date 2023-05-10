@@ -9,19 +9,22 @@ one sig Board {
     squares : pfunc Int -> Int -> Square
 }
 
+abstract sig Direction {
+    ord: pfunc Square -> Square
+}
+
+one sig Right extends Direction {}
+one sig Left extends Direction  {}
+one sig Up extends Direction    {}
+one sig Down extends Direction  {}
+
 /** 
  * Instead of Board referring directly to the cells, it might
  * be helpful to abstract away another layer of "squares", which
  * can store some extra positioning information. Could also be removed.
 */
 sig Square {
-    var cell: lone Cell, // May or may not be filled
-
-    // Might be helpful to keep track of what's in each direction?
-    up:    lone Square,
-    down:  lone Square,
-    left:  lone Square,
-    right: lone Square
+    var cell: lone Cell // May or may not be filled
 }
 
 sig Cell { // Maybe rename to block?
@@ -30,7 +33,7 @@ sig Cell { // Maybe rename to block?
     child: lone Cell, // Results of merging
     parents: set Cell,
 
-    var location: lone Square
+    var location: lone Square 
 }
 
 /**
@@ -61,10 +64,10 @@ pred ordered {
             // check edge cases, as will evaluate to None anyway.
             // Using succ relation because integer addition was giving
             // problems
-            (Board.squares[c][r]).down  = Board.squares[c][r.succ]
-            (Board.squares[c][r]).up    = Board.squares[c][succ.r]
-            (Board.squares[c][r]).right = Board.squares[c.succ][r]
-            (Board.squares[c][r]).left  = Board.squares[succ.c][r]
+            (Board.squares[c][r]).(Down.ord)  = Board.squares[c][r.succ]
+            (Board.squares[c][r]).(Up.ord)    = Board.squares[c][succ.r]
+            (Board.squares[c][r]).(Right.ord) = Board.squares[c.succ][r]
+            (Board.squares[c][r]).(Left.ord)  = Board.squares[succ.c][r]
         }
     }
 }
@@ -75,20 +78,16 @@ pred ordered {
 pred parenthoodWellFormed {
     // No self-parenthood
     no iden & parents
+    // Child is inverse of parents
+    child = ~parents
 
     all c: Cell {
         // Either 2 parent or no parents
         #{c.parents} = 0 or #{c.parents} = 2
-        child = ~parents
 
-        // Parent/child inverse property
-        some c.child => {
-            c.child.value = c.value.succ
-        }
-
-        // Other direction
+        // Parents are 
         some c.parents => {
-            c.parents.value = succ.(c.value)
+            c.parents.value.succ = c.value
         }
     }
 }
@@ -103,19 +102,7 @@ pred cellWellFormed {
     }}
 
     // location is inverse as expected
-    all c: Cell {
-        always {c in Square.cell => {
-            c.location.cell = c
-        } else {
-            no c.location
-        }}
-
-        always not {
-            c in Square.cell
-            some c.child
-            c.child in Square.cell
-            }
-    }
+    always cell = ~location
 }
 
 /**
@@ -142,47 +129,11 @@ pred nonEmpty {
 * Guard for whether player can slide blocks to right. Can if there
 * is a cell with same numbered to its right or empty cell.
 */
-pred guardRight {
+pred guard[dir: Direction] {
     some s: Square | {
-        some s.right
+        some s.(dir.ord)
         some s.cell
-        s.right.cell = none or s.right.cell.value = s.cell.value
-    }
-}
-
-/**
-* Guard for whether player can slide blocks to right. Can if there
-* is a cell with same numbered to its right or empty cell.
-*/
-pred guardLeft {
-    some s: Square | {
-        some s.left
-        some s.cell
-        s.left.cell = none or s.left.cell.value = s.cell.value
-    }
-}
-
-/**
-* Guard for whether player can slide blocks to right. Can if there
-* is a cell with same numbered to its right or empty cell.
-*/
-pred guardUp {
-    some s: Square | {
-        some s.up
-        some s.cell
-        s.up.cell = none or s.up.cell.value = s.cell.value
-    }
-}
-
-/**
-* Guard for whether player can slide blocks to right. Can if there
-* is a cell with same numbered to its right or empty cell.
-*/
-pred guardDown {
-    some s: Square | {
-        some s.down
-        some s.cell
-        s.down.cell = none or s.down.cell.value = s.cell.value
+        s.(dir.ord).cell = none or s.(dir.ord).cell.value = s.cell.value
     }
 }
 
@@ -214,15 +165,15 @@ pred mergeOrMaintain {
  * Guarantees that cells remain on the same row in the next state (or their 
  * children do). For use in either the right or left transition predicates.
 */
-pred rowsPreserved {
+pred rowColPreserved[dir: Direction] {
     all c: Square.cell {
         // Location on the same row
         c in Square.cell' => {
-            c.location -> c.location' in ^(right + left + iden)
+            c.location -> c.location' in ^(dir.ord + ~(dir.ord) + iden)
         }
         // OR location of child in the same row
         c.child in Square.cell' => {
-            c.location -> c.child.location' in ^(right + left + iden)
+            c.location -> c.child.location' in ^(dir.ord + ~(dir.ord) + iden)
         }
     }
 }
@@ -231,54 +182,24 @@ pred rowsPreserved {
  * Makes sure that, if two cells are next two each other with the same value,
  * and either left or right is swiped, the two will merge together. 
 */
-pred rowsForceMerge {
+pred forceMerge[dir: Direction] {
     // This represents right adjacentcy modulo empty spaces in between. 
-    let cellRight = {c1: Cell, c2: Cell | {
+    let cellDir = {c1: Cell, c2: Cell | {
         c1 in Square.cell
         c2 in Square.cell
-        c1.location -> c2.location in ^right
+        c1.location -> c2.location in ^(dir.ord)
         no c3 : Square.cell {
-            c1.location -> c3.location in ^right
-            c3.location -> c2.location in ^right
+            c1.location -> c3.location in ^(dir.ord)
+            c3.location -> c2.location in ^(dir.ord)
         }
     }} | {
     all c : Square.cell {
-        c.cellRight.value = c.value => {
-            c not in Square.cell' or c.cellRight not in Square.cell'
+        c.cellDir.value = c.value => {
+            c.cellDir not in Square.cell'
         }
-    }}
-}
-
-// See above
-pred colsForceMerge {
-    // This represents right adjacentcy modulo empty spaces in between. 
-    let cellDown = {c1: Cell, c2: Cell | {
-        c1 in Square.cell
-        c2 in Square.cell
-        c1.location -> c2.location in ^down
-        no c3 : Square.cell {
-            c1.location -> c3.location in ^down
-            c3.location -> c2.location in ^down
-        }
-    }} | {
-    all c : Square.cell {
-        c.cellDown.value = c.value => {
-            c not in Square.cell' or c.cellDown not in Square.cell'
-        }
-    }}
-}
-
-/**
- * See above.
-*/ 
-pred colsPreserved {
-    all c: Square.cell {
-        c in Square.cell' => {
-            c.location -> c.location' in ^(up + down + iden)
-        }
-        c.child in Square.cell' => {
-            c.location -> c.child.location' in ^(up + down + iden)
-        }
+    }
+    
+    
     }
 }
 
@@ -286,188 +207,35 @@ pred colsPreserved {
  * Checks that the cells in a state are "up agains" the right wall, with no
  * free spaces to the right of cells. 
 */
-pred rightPushed {
+pred pushed[dir: Direction] {
     all s: Square {
         some s.cell => {
-            no s.right or some s.right.cell
+            no s.(dir.ord) or some s.(dir.ord).cell
         }
     }
 }
 
 // See above
-pred leftPushed {
-    all s: Square {
-        some s.cell => {
-            no s.left or some s.left.cell
-        }
-    }
-}
-
-// See above
-pred upPushed {
-    all s: Square {
-        some s.cell => {
-            no s.up or some s.up.cell
-        }
-    }
-}
-
-// See above
-pred downPushed {
-    all s: Square {
-        some s.cell => {
-            no s.down or some s.down.cell
-        }
-    }
-}
-
-// See above
-pred swipeRight {
-    guardRight
-    rowsForceMerge
-    next_state rightPushed
+pred swipe[dir:Direction] {
+    guard[dir]
+    forceMerge[dir]
+    next_state pushed[dir]
     mergeOrMaintain
-    rowsPreserved
+    rowColPreserved[dir]
 
     let finalOrdering = {c1: Cell, c2: Cell | {
             c1 in Square.cell'
             c2 in Square.cell'
-            c1.location' -> c2.location' in right
+            c1.location' -> c2.location' in dir.ord
     }} | {
 
         all c1: Cell, c2: Cell {{
             c1 in Square.cell
             c2 in Square.cell
-            c1.location -> c2.location in ^right
+            c1.location -> c2.location in ^(dir.ord)
             no c3 : Square.cell {
-                c1.location -> c3.location in ^right
-                c3.location -> c2.location in ^right
-            }
-        } => {
-            {
-                c1 -> c2 in finalOrdering
-            } or {
-                some c1.child
-                c1.child -> c2 in finalOrdering
-            } or {
-                some c2.child
-                c1 -> c2.child in finalOrdering
-            } or {
-                some c1.child and some c2.child
-                c1.child -> c2.child in finalOrdering
-            } or {
-                some c1.child
-                c1.child = c2.child
-            }
-        }
-    }}
-}
-
-// See above
-pred swipeLeft {
-    guardLeft
-    rowsForceMerge
-    next_state leftPushed
-    mergeOrMaintain
-    rowsPreserved
-
-    let finalOrdering = {c1: Cell, c2: Cell | {
-            c1 in Square.cell'
-            c2 in Square.cell'
-            c1.location' -> c2.location' in left
-    }} | {
-
-        all c1: Cell, c2: Cell {{
-            c1 in Square.cell
-            c2 in Square.cell
-            c1.location -> c2.location in ^left
-            no c3 : Square.cell {
-                c1.location -> c3.location in ^left
-                c3.location -> c2.location in ^left
-            }
-        } => {
-            {
-                c1 -> c2 in finalOrdering
-            } or {
-                some c1.child
-                c1.child -> c2 in finalOrdering
-            } or {
-                some c2.child
-                c1 -> c2.child in finalOrdering
-            } or {
-                some c1.child and some c2.child
-                c1.child -> c2.child in finalOrdering
-            } or {
-                some c1.child
-                c1.child = c2.child
-            }
-        }
-    }}
-}
-
-// See above
-pred swipeUp {
-    guardUp
-    colsForceMerge
-    next_state upPushed
-    mergeOrMaintain
-    colsPreserved
-
-    let finalOrdering = {c1: Cell, c2: Cell | {
-            c1 in Square.cell'
-            c2 in Square.cell'
-            c1.location' -> c2.location' in up
-    }} | {
-
-        all c1: Cell, c2: Cell {{
-            c1 in Square.cell
-            c2 in Square.cell
-            c1.location -> c2.location in ^up
-            no c3 : Square.cell {
-                c1.location -> c3.location in ^up
-                c3.location -> c2.location in ^up
-            }
-        } => {
-            {
-                c1 -> c2 in finalOrdering
-            } or {
-                some c1.child
-                c1.child -> c2 in finalOrdering
-            } or {
-                some c2.child
-                c1 -> c2.child in finalOrdering
-            } or {
-                some c1.child and some c2.child
-                c1.child -> c2.child in finalOrdering
-            } or {
-                some c1.child
-                c1.child = c2.child
-            }
-        }
-    }}
-}
-
-// See above
-pred swipeDown {
-    guardDown
-    colsForceMerge
-    next_state downPushed
-    mergeOrMaintain
-    colsPreserved
-
-    let finalOrdering = {c1: Cell, c2: Cell | {
-            c1 in Square.cell'
-            c2 in Square.cell'
-            c1.location' -> c2.location' in down
-    }} | {
-
-        all c1: Cell, c2: Cell {{
-            c1 in Square.cell
-            c2 in Square.cell
-            c1.location -> c2.location in ^down
-            no c3 : Square.cell {
-                c1.location -> c3.location in ^down
-                c3.location -> c2.location in ^down
+                c1.location -> c3.location in ^(dir.ord)
+                c3.location -> c2.location in ^(dir.ord)
             }
         } => {
             {
@@ -506,16 +274,16 @@ pred traces {
     parenthoodWellFormed
     init
     always {
-        swipeRight or swipeLeft or swipeUp or swipeDown or doNothing
+        doNothing or {some dir : Direction | swipe[dir]}
     }
 }
 
 run {
     traces
-    swipeRight
-    next_state swipeDown
+    swipe[Right]
+    next_state swipe[Down]
     (Board.squares[0][0]).cell.value = 1
+    (Board.squares[1][0]).cell.value = 1
     (Board.squares[2][0]).cell.value = 1
-    (Board.squares[0][2]).cell.value = 1
     (Board.squares[2][2]).cell.value = 1
 } for exactly 9 Square, 7 Cell
