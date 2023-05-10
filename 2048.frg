@@ -1,8 +1,8 @@
 #lang forge "dining_smiths/polite_smiths" "<anonymous email>"
 
 option problem_type temporal
-option max_tracelength 8
-option min_tracelength 3
+option max_tracelength 4
+option min_tracelength 4
 option solver Glucose
 
 one sig Board {
@@ -141,7 +141,7 @@ pred guard[dir: Direction] {
  * This guarantees that the cells on the board are all either merged or
  * stay on the board, with child nodes appearing appropriately for merging.
 */
-pred mergeOrMaintain {
+pred mergeOrMaintain[new: Cell] {
     // All cells in the board keep either themselves or a child in the 
     // new board, but not both
     all c: Square.cell | {
@@ -280,10 +280,9 @@ pred traces {
 
 run {
     traces
-    swipe[Right]
-    next_state swipe[Down]
     (Board.squares[0][0]).cell.value = 1
     (Board.squares[1][0]).cell.value = 1
     (Board.squares[2][0]).cell.value = 1
     (Board.squares[2][2]).cell.value = 1
-} for exactly 9 Square, 7 Cell
+    eventually (3 in Square.cell.value)
+} for exactly 9 Square, 8 Cell
