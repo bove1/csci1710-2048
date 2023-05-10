@@ -1,3 +1,4 @@
+boardSize = 2
 count = 0
 stage = new Stage()
 
@@ -13,15 +14,15 @@ for (inst of instances) {
             y_size: 40
         },
         grid_dimensions:{
-            x_size: 3,
-            y_size: 3
+            x_size: boardSize,
+            y_size: boardSize
         }
     }
 
     let grid = new Grid(gridProps)
 
-    for (let c = 0; c < 3; c++) {
-        for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < boardSize; c++) {
+        for (let r = 0; r < boardSize; r++) {
             let tuples = board.squares.tuples()
 
             for (t of tuples){

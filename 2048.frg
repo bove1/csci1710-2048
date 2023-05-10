@@ -40,26 +40,33 @@ sig Cell { // Maybe rename to block?
  * The board is a four-by-four grid
  * Well formed-ness 
  */ 
-pred fourByFour {
+pred fourByFour[size: Int] {
     // Domain of squares map is 4x4 grid
     Board.squares.Square = {r: Int, c: Int | {
-        0 <= r and r < 3
-        0 <= c and c < 3
+        0 <= r and r < size
+        0 <= c and c < size
     }}
 
     Square = Board.squares[Int][Int]
-     // Easier to hard-code this then injectivity since we're already
-     // Hardcoding the 4x4 size
-    # Board.squares = 9
+     // Injectivity
+    all r1, r2, c1, c2: Int {
+        {
+            some Board.squares[r1][c1] 
+            some Board.squares[r2][c2]
+            r1 != r2 or c1 != c2
+        } => {
+            Board.squares[r1][c1] != Board.squares[r2][c2]
+        }
+    }
 }
 
 /**
  * Guarantees that the square's "left", "right", etc position
  * values are set correctly. 
 */
-pred ordered {
+pred ordered[size: Int] {
     all r : Int | all c : Int {
-        {0 <= r and r < 3 and 0 <= c and c < 3} => {
+        {0 <= r and r < size and 0 <= c and c < size} => {
             // Set to corresponding location. Notably, don't need to 
             // check edge cases, as will evaluate to None anyway.
             // Using succ relation because integer addition was giving
@@ -269,9 +276,9 @@ pred doNothing {
     Traces predicate. Takes all well-formedness conditions, along with initilization,
     and checks that the state remains constant. 
 */ 
-pred traces {
-    fourByFour
-    ordered
+pred traces[size: Int] {
+    fourByFour[size]
+    ordered[size]
     cellWellFormed
     parenthoodWellFormed
     init
@@ -282,6 +289,6 @@ pred traces {
 }
 
 run {
-    traces
-    eventually {3 in Square.cell.value}
-} for exactly 9 Square, 10 Cell
+    traces[2]
+    eventually {4 in Square.cell.value}
+} for exactly 4 Square, 10 Cell
