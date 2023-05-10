@@ -1,8 +1,8 @@
 #lang forge "dining_smiths/polite_smiths" "<anonymous email>"
 
 option problem_type temporal
-option max_tracelength 4
-option min_tracelength 4
+option max_tracelength 5
+option min_tracelength 5
 option solver Glucose
 
 one sig Board {
@@ -112,7 +112,7 @@ pred cellWellFormed {
  */
 pred init {
     // Exactly 2 starting cells
-	#{Square.cell} = 4
+	#{Square.cell} = 2
 
     // Starting cells either 1 or 2 (eg. 2 or 4)
 	Square.cell.value in {i: Int | i = 1 or i = 2}
@@ -141,7 +141,7 @@ pred guard[dir: Direction] {
  * This guarantees that the cells on the board are all either merged or
  * stay on the board, with child nodes appearing appropriately for merging.
 */
-pred mergeOrMaintain[new: Cell] {
+pred mergeOrMaintain[added: Cell] {
     // All cells in the board keep either themselves or a child in the 
     // new board, but not both
     all c: Square.cell | {
@@ -152,9 +152,15 @@ pred mergeOrMaintain[new: Cell] {
             not {c in Square.cell' and c.child in Square.cell'}
         }
     }
+
+    // New cell is new on board.
+    added in Square.cell' - Square.cell
+    no added.parents // New is not parent of anything
+    added.value = 1 or added.value = 2 // Value either 1 or 2
+
     // All cells in the new board had either themselves or both parents in 
     // the previous board
-    all c: Square.cell' | {
+    all c: Square.cell' - added | {
         {not c in Square.cell} <=> {
             # {c.parents & Square.cell} = 2
         }
@@ -197,38 +203,34 @@ pred forceMerge[dir: Direction] {
         c.cellDir.value = c.value => {
             c.cellDir not in Square.cell'
         }
-    }
-    
-    
-    }
+    }}
 }
 
 /**
  * Checks that the cells in a state are "up agains" the right wall, with no
  * free spaces to the right of cells. 
 */
-pred pushed[dir: Direction] {
+pred pushed[dir: Direction, added: Cell] {
     all s: Square {
-        some s.cell => {
-            no s.(dir.ord) or some s.(dir.ord).cell
+        some s.cell - added => {
+            no s.(dir.ord) or some (s.(dir.ord).cell - added)
         }
     }
 }
 
 // See above
-pred swipe[dir:Direction] {
+pred swipe[dir:Direction, added: Cell] {
     guard[dir]
     forceMerge[dir]
-    next_state pushed[dir]
-    mergeOrMaintain
+    next_state pushed[dir, added]
+    mergeOrMaintain[added]
     rowColPreserved[dir]
 
     let finalOrdering = {c1: Cell, c2: Cell | {
-            c1 in Square.cell'
-            c2 in Square.cell'
-            c1.location' -> c2.location' in dir.ord
+        c1 in Square.cell' - added
+        c2 in Square.cell' - added
+        c1.location' -> c2.location' in dir.ord
     }} | {
-
         all c1: Cell, c2: Cell {{
             c1 in Square.cell
             c2 in Square.cell
@@ -274,15 +276,12 @@ pred traces {
     parenthoodWellFormed
     init
     always {
-        doNothing or {some dir : Direction | swipe[dir]}
+        doNothing or {some dir : Direction | one added: Cell | swipe[dir, added]}
     }
+    always {doNothing => always doNothing}
 }
 
 run {
     traces
-    (Board.squares[0][0]).cell.value = 1
-    (Board.squares[1][0]).cell.value = 1
-    (Board.squares[2][0]).cell.value = 1
-    (Board.squares[2][2]).cell.value = 1
-    eventually (3 in Square.cell.value)
-} for exactly 9 Square, 8 Cell
+    eventually {3 in Square.cell.value}
+} for exactly 9 Square, 10 Cell
