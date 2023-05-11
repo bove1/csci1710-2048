@@ -1,4 +1,4 @@
-#lang forge
+#lang forge "final" "nvliavoez7ahtpvr"
 
 open "2048.frg"
 option solver glucose
