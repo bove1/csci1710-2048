@@ -78,6 +78,28 @@ pred fourByFour[size: Int] {
 }
 
 /**
+ * Potential optimizer for the board.
+ */ 
+// inst optimizer {
+    // we probably don't need these since we have a lot more than 2 board states 
+//     -- 2 board states
+//     PuzzleState = `PuzzleState0
+//     SolvedState = `SolvedState0
+    // but this could be helpful
+//     BoardState = PuzzleState + SolvedState
+//     -- Upper-bound on the board relation: don't even try to use
+//     -- a row, column, or value that's outside the interval [1, 9]
+//     board in BoardState -> 
+//              (1 + 2 + 3 + 4) -> 
+//              (1 + 2 + 3 + 4) -> 
+//              (1 + 2 + 3 + 4)
+
+//     -- encode the set of values in bounds, not constraints
+//     Helper = `Helper0
+//     values = Helper -> (1 + 2 + 3 + 4)
+// }
+
+/**
  * Checks that the grid of size `size` has properly aligned direction orderings
  * for up, down, left, and right. 
 */
