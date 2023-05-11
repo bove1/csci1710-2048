@@ -1,4 +1,4 @@
-#lang forge "final" "nvliavoez7ahtpvr@gmail.com"
+#lang forge "final" "nvliavoez7ahtpvr"
 
 open "2048.frg"
 

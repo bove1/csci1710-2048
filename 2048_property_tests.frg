@@ -1,4 +1,4 @@
-#lang forge "final" "nvliavoez7ahtpvr@gmail.com"
+#lang forge "final" "nvliavoez7ahtpvr"
 
 // Observing full-game properties of 2x2 grids. 
 //     How fast can someone lose the game? 
