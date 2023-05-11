@@ -1,4 +1,4 @@
-#lang forge "forge3/stop_and_copy.tests" "<anonymous email>"
+#lang forge "final" "nvliavoez7ahtpvr@gmail.com"
 
 open "2048.frg"
 

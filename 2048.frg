@@ -1,4 +1,4 @@
-#lang forge "dining_smiths/polite_smiths" "<anonymous email>"
+#lang forge "final" "nvliavoez7ahtpvr@gmail.com"
 
 option problem_type temporal
 option max_tracelength 5
@@ -81,12 +81,6 @@ pred fourByFour[size: Int] {
  * Potential optimizer for the board.
  */ 
 // inst optimizer {
-    // we probably don't need these since we have a lot more than 2 board states 
-//     -- 2 board states
-//     PuzzleState = `PuzzleState0
-//     SolvedState = `SolvedState0
-    // but this could be helpful
-//     BoardState = PuzzleState + SolvedState
 //     -- Upper-bound on the board relation: don't even try to use
 //     -- a row, column, or value that's outside the interval [1, 9]
 //     board in BoardState -> 
