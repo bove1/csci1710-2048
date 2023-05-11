@@ -81,7 +81,7 @@ pred fourByFour[size: Int] {
  * Potential optimizer for the board.
  */ 
 // inst optimizer {
-//     -- Just 2 board states (don't name the atoms the same as the sigs)
+//     -- 2 board states
 //     PuzzleState = `PuzzleState0
 //     SolvedState = `SolvedState0
 //     BoardState = PuzzleState + SolvedState
