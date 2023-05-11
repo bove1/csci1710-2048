@@ -3,7 +3,7 @@
 option problem_type temporal
 option max_tracelength 5
 option min_tracelength 5
-option solver Glucose
+// option solver Glucose
 
 /**
 * Overarching signature representing the board. 
@@ -127,6 +127,9 @@ pred cellWellFormed {
 
     // location is inverse as expected
     always cell = ~location
+
+    // Value positive
+    cell.value > 0
 }
 
 /**
@@ -302,15 +305,19 @@ pred doNothing {
     location = location'
 }
 
+pred wellFormed[size: Int] {
+    fourByFour[size]
+    ordered[size]
+    cellWellFormed
+    parenthoodWellFormed
+}
+
 /**
     Traces predicate. Takes all well-formedness conditions, along with initilization,
     and checks that the state remains constant. 
 */ 
 pred traces[size: Int] {
-    fourByFour[size]
-    ordered[size]
-    cellWellFormed
-    parenthoodWellFormed
+    wellFormed[size]
     init
     always {
         doNothing or {some dir : Direction | one added: Cell | swipe[dir, added]}
