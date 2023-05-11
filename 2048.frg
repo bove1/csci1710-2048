@@ -5,40 +5,56 @@ option max_tracelength 5
 option min_tracelength 5
 option solver Glucose
 
+/**
+* Overarching signature representing the board. 
+*/
 one sig Board {
+    // Map of location of squares. 
     squares : pfunc Int -> Int -> Square
 }
 
+/**
+ * Abstract sig representing directions (ie right, left, etc) on the 
+ * board. 
+*/
 abstract sig Direction {
+    // Corresponding map of one square to another. 
     ord: pfunc Square -> Square
 }
 
+/**
+ * Implementations of the direction sig for the four directions one can
+ * swipe.
+*/
 one sig Right extends Direction {}
 one sig Left extends Direction  {}
 one sig Up extends Direction    {}
 one sig Down extends Direction  {}
 
 /** 
- * Instead of Board referring directly to the cells, it might
- * be helpful to abstract away another layer of "squares", which
- * can store some extra positioning information. Could also be removed.
+ * Squares represent individual squares on the board, with a variable "cell"
+ * of which cell they are holding to at a given time. 
 */
 sig Square {
     var cell: lone Cell // May or may not be filled
 }
 
-sig Cell { // Maybe rename to block?
+/**
+ * These are the fundamental block objects that show up on screen and slide around.
+ * Cells keep track of their parents (who merged into them) and children (who they 
+ * merge into)
+*/
+sig Cell { 
     value : one Int, // Values constant during cell's lifetime
 
     child: lone Cell, // Results of merging
-    parents: set Cell,
+    parents: set Cell, // What (if any) the block merged from. 
 
-    var location: lone Square 
+    var location: lone Square // Inverse of cell map
 }
 
 /**
- * The board is a four-by-four grid
- * Well formed-ness 
+ * The board is a grid of the desired size. 
  */ 
 pred fourByFour[size: Int] {
     // Domain of squares map is 4x4 grid
@@ -47,6 +63,7 @@ pred fourByFour[size: Int] {
         0 <= c and c < size
     }}
 
+     // Surjectivity
     Square = Board.squares[Int][Int]
      // Injectivity
     all r1, r2, c1, c2: Int {
@@ -61,8 +78,8 @@ pred fourByFour[size: Int] {
 }
 
 /**
- * Guarantees that the square's "left", "right", etc position
- * values are set correctly. 
+ * Checks that the grid of size `size` has properly aligned direction orderings
+ * for up, down, left, and right. 
 */
 pred ordered[size: Int] {
     all r : Int | all c : Int {
@@ -92,7 +109,7 @@ pred parenthoodWellFormed {
         // Either 2 parent or no parents
         #{c.parents} = 0 or #{c.parents} = 2
 
-        // Parents are 
+        // Parent's value is one less than child's 
         some c.parents => {
             c.parents.value.succ = c.value
         }
@@ -113,9 +130,9 @@ pred cellWellFormed {
 }
 
 /**
- * There is a valid board.
+ * There is a valid starting board.
  * All of the boxes are empty save for two (which have the lowest 
- * denomination -- the same that appear on a turn)
+ * denominations -- the same that appear on a turn)
  */
 pred init {
     // Exactly 2 starting cells
@@ -133,8 +150,7 @@ pred nonEmpty {
 }
 
 /**
-* Guard for whether player can slide blocks to right. Can if there
-* is a cell with same numbered to its right or empty cell.
+* Guard for whether player can slide blocks in given direction. 
 */
 pred guard[dir: Direction] {
     some s: Square | {
@@ -147,6 +163,8 @@ pred guard[dir: Direction] {
 /**
  * This guarantees that the cells on the board are all either merged or
  * stay on the board, with child nodes appearing appropriately for merging.
+ * All of this is with the exception of the `added` cell, which is the one that
+ * has just shown up on screen. 
 */
 pred mergeOrMaintain[added: Cell] {
     // All cells in the board keep either themselves or a child in the 
@@ -175,8 +193,8 @@ pred mergeOrMaintain[added: Cell] {
 }
 
 /**
- * Guarantees that cells remain on the same row in the next state (or their 
- * children do). For use in either the right or left transition predicates.
+ * Guarantees that cells remain on the same row/col in the next state (or their 
+ * children do). 
 */
 pred rowColPreserved[dir: Direction] {
     all c: Square.cell {
@@ -192,8 +210,9 @@ pred rowColPreserved[dir: Direction] {
 }
 
 /**
- * Makes sure that, if two cells are next two each other with the same value,
- * and either left or right is swiped, the two will merge together. 
+ * Makes sure that if two cells are next to each other in the designated 
+ * direction and have the same value, that at least the second one will
+ * be merged in the following state. 
 */
 pred forceMerge[dir: Direction] {
     // This represents right adjacentcy modulo empty spaces in between. 
@@ -214,8 +233,8 @@ pred forceMerge[dir: Direction] {
 }
 
 /**
- * Checks that the cells in a state are "up agains" the right wall, with no
- * free spaces to the right of cells. 
+ * Checks that the cells in a state are "up against" the wall in a given direction, with no
+ * free spaces in between. Exception for new cell after transition. 
 */
 pred pushed[dir: Direction, added: Cell] {
     all s: Square {
@@ -225,7 +244,11 @@ pred pushed[dir: Direction, added: Cell] {
     }
 }
 
-// See above
+/**
+ * Full transition predicate for swiping the cells in a given direction. Uses a combination of 
+ * the previous helper predicates, along with a check that the order of cells has not changed
+ * (up to replacement of certain cells with their children).
+*/ 
 pred swipe[dir:Direction, added: Cell] {
     guard[dir]
     forceMerge[dir]
@@ -233,12 +256,17 @@ pred swipe[dir:Direction, added: Cell] {
     mergeOrMaintain[added]
     rowColPreserved[dir]
 
+    // This is the ordering of cells that shows up in the final state, other than newly added cell.
     let finalOrdering = {c1: Cell, c2: Cell | {
         c1 in Square.cell' - added
         c2 in Square.cell' - added
         c1.location' -> c2.location' in dir.ord
     }} | {
+
         all c1: Cell, c2: Cell {{
+            // This first part allows us to check over all cells that are next to each other in the
+            // given direction *modulo* cells in between. In other words if we have C1 -> Empty -> C2
+            // -> C3, the ordering would be C1 -> C2 -> C3. 
             c1 in Square.cell
             c2 in Square.cell
             c1.location -> c2.location in ^(dir.ord)
@@ -247,6 +275,8 @@ pred swipe[dir:Direction, added: Cell] {
                 c3.location -> c2.location in ^(dir.ord)
             }
         } => {
+            // Checks that for each of these paired orderings, same pair shows up in the final order,
+            // up to replacement with children.
             {
                 c1 -> c2 in finalOrdering
             } or {
@@ -289,6 +319,6 @@ pred traces[size: Int] {
 }
 
 run {
-    traces[2]
+    traces[4]
     eventually {4 in Square.cell.value}
-} for exactly 4 Square, 10 Cell
+} for exactly 16 Square, 10 Cell
