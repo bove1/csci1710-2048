@@ -129,7 +129,7 @@ pred cellWellFormed {
     always cell = ~location
 
     // Value positive
-    cell.value > 0
+    Cell.value > 0
 }
 
 /**

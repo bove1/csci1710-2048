@@ -51,8 +51,6 @@ inst optimizer4 {
     )
 }
 
-// run {} for 16 Square for optimizer4
-
 test expect {
 //     twoByTwo: {
 //         fourByFour[2] => {
@@ -86,39 +84,35 @@ test expect {
 //         }
 //     } for exactly 16 Square, 0 Cell is theorem
 
-//     orderedTest: {
-//         {ordered[4] and fourByFour[4]} => {
-//             all dir: Direction {
-//                 #(dir.ord) = 12
-//                 #{s: Square | no s.(dir.ord)} = 4
-//             }
-//         }
-//     } for exactly 16 Square, 0 Cell is theorem
-
-    // orderedThm: {
-    //     not ordered[4]
-    // } for optimizer4 is theorem
-
-    // pushedRightTest: {
-    //     all c: Cell {
-    //         {
-    //             pushed[Right, c]
-    //             wellFormed[4]
-    //             some (Board.squares[0][0]).cell - c
-    //             some (Board.squares[2][3]).cell - c
-    //             no (Board.squares[2][2]).cell - c
-    //         } => {
-    //             some (Board.squares[1][0]).cell - c
-    //             some (Board.squares[2][0]).cell - c
-    //             some (Board.squares[3][0]).cell - c
-    //             // Cells to right of 2, 3
-    //             some (Board.squares[3][3]).cell - c
-    //             // No cells to left of 2, 2
-    //             no (Board.squares[0][2]).cell - c
-    //             no (Board.squares[1][2]).cell - c
-    //         } 
+    // orderedTest: {
+    //     {ordered[4] and fourByFour[4]} => {
+    //         all dir: Direction {
+    //             #(dir.ord) = 12
+    //             #{s: Square | no s.(dir.ord)} = 4
+    //         }
     //     }
-    // } for optimizer4 is theorem 
+    // } for exactly 16 Square, 0 Cell is theorem
+
+    pushedRightTest: {
+        all c: Cell {
+            {
+                pushed[Right, c]
+                wellFormed[4]
+                some (Board.squares[0][0]).cell - c
+                some (Board.squares[2][3]).cell - c
+                no (Board.squares[2][2]).cell - c
+            } => {
+                some (Board.squares[1][0]).cell - c
+                some (Board.squares[2][0]).cell - c
+                some (Board.squares[3][0]).cell - c
+                // Cells to right of 2, 3
+                some (Board.squares[3][3]).cell - c
+                // No cells to left of 2, 2
+                no (Board.squares[0][2]).cell - c
+                no (Board.squares[1][2]).cell - c
+            } 
+        }
+    } for optimizer4 is theorem 
 
 //     pushedUpTest: {
 //         wellFormed[4]
