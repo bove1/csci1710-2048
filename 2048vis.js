@@ -1,4 +1,4 @@
-boardSize = 2
+boardSize = 4
 count = 0
 stage = new Stage()
 
@@ -8,7 +8,7 @@ for (inst of instances) {
     cell = inst.field('cell')
 
     let gridProps = {
-        grid_location: {x: 40 + 150 * count, y: 40},
+        grid_location: {x: 40 + 40 * count * (boardSize + 1), y: 40},
         cell_size:{
             x_size: 40,
             y_size: 40

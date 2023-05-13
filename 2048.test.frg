@@ -10,7 +10,7 @@ option min_tracelength 1
  * Potential optimizer for the board.
  */ 
 inst optimizer4 {
-    Board = `Board
+    Board = `Board0
     Square =    `Square00 + `Square10 + `Square20 + `Square30 +
                 `Square01 + `Square11 + `Square21 + `Square31 +
                 `Square02 + `Square12 + `Square22 + `Square32 +
@@ -23,31 +23,67 @@ inst optimizer4 {
         3 -> (0 -> `Square30 + 1 -> `Square31 + 2 -> `Square32 + 3 -> `Square33) 
     )
     
-    Right = `Right
-    Left =  `Left
-    Up =    `Up
-    Down =  `Down
+    Right = `Right0
+    Left =  `Left0
+    Up =    `Up0
+    Down =  `Down0
     Direction = Right + Left + Up + Down
-    ord = `Right -> (
+    ord = `Right0 -> (
         `Square00 -> `Square10 + `Square10 -> `Square20 + `Square20 -> `Square30 + 
         `Square01 -> `Square11 + `Square11 -> `Square21 + `Square21 -> `Square31 + 
         `Square02 -> `Square12 + `Square12 -> `Square22 + `Square22 -> `Square32 + 
         `Square03 -> `Square13 + `Square13 -> `Square23 + `Square23 -> `Square33 
-    ) + `Left -> (
+    ) + `Left0 -> (
         `Square30 -> `Square20 + `Square20 -> `Square10 + `Square10 -> `Square00 + 
         `Square31 -> `Square21 + `Square21 -> `Square11 + `Square11 -> `Square01 + 
         `Square32 -> `Square22 + `Square22 -> `Square12 + `Square12 -> `Square02 + 
         `Square33 -> `Square23 + `Square23 -> `Square13 + `Square13 -> `Square03 
-    ) + `Up -> (
+    ) + `Up0 -> (
         `Square03 -> `Square02 + `Square02 -> `Square01 + `Square01 -> `Square00 + 
         `Square13 -> `Square12 + `Square12 -> `Square11 + `Square11 -> `Square10 + 
         `Square23 -> `Square22 + `Square22 -> `Square21 + `Square21 -> `Square20 + 
         `Square33 -> `Square32 + `Square32 -> `Square31 + `Square31 -> `Square30 
-    ) + `Down -> (
+    ) + `Down0 -> (
         `Square00 -> `Square01 + `Square01 -> `Square02 + `Square02 -> `Square03 + 
         `Square10 -> `Square11 + `Square11 -> `Square12 + `Square12 -> `Square13 + 
         `Square20 -> `Square21 + `Square21 -> `Square22 + `Square22 -> `Square23 + 
         `Square30 -> `Square31 + `Square31 -> `Square32 + `Square32 -> `Square33 
+    )
+}
+
+inst optimizer3 {
+    Board = `Board0
+    Square =    `Square00 + `Square10 + `Square20 +
+                `Square01 + `Square11 + `Square21 + 
+                `Square02 + `Square12 + `Square22 
+
+    squares = Board -> (
+        0 -> (0 -> `Square00 + 1 -> `Square01 + 2 -> `Square02) + 
+        1 -> (0 -> `Square10 + 1 -> `Square11 + 2 -> `Square12) + 
+        2 -> (0 -> `Square20 + 1 -> `Square21 + 2 -> `Square22)
+    )
+    
+    Right = `Right0
+    Left =  `Left0
+    Up =    `Up0
+    Down =  `Down0
+    Direction = Right + Left + Up + Down
+    ord = `Right0 -> (
+        `Square00 -> `Square10 + `Square10 -> `Square20 +
+        `Square01 -> `Square11 + `Square11 -> `Square21 +
+        `Square02 -> `Square12 + `Square12 -> `Square22 
+    ) + `Left0 -> (
+        `Square20 -> `Square10 + `Square10 -> `Square00 + 
+        `Square21 -> `Square11 + `Square11 -> `Square01 + 
+        `Square22 -> `Square12 + `Square12 -> `Square02 
+    ) + `Up0 -> (
+        `Square02 -> `Square01 + `Square01 -> `Square00 + 
+        `Square12 -> `Square11 + `Square11 -> `Square10 + 
+        `Square22 -> `Square21 + `Square21 -> `Square20 
+    ) + `Down0 -> (
+        `Square00 -> `Square01 + `Square01 -> `Square02 + 
+        `Square10 -> `Square11 + `Square11 -> `Square12 +
+        `Square20 -> `Square21 + `Square21 -> `Square22 
     )
 }
 
@@ -93,6 +129,11 @@ test expect {
     //     }
     // } for exactly 16 Square, 0 Cell is theorem
 
+    optFourByFour4: {fourByFour[4]} for optimizer4 is theorem
+    optFourByFour3: {fourByFour[3]} for optimizer3 is theorem
+    optFourByFour4: {ordered[4]} for optimizer4 is theorem
+    optFourByFour3: {ordered[3]} for optimizer3 is theorem
+
     pushedRightTest: {
         all c: Cell {
             {
@@ -112,69 +153,185 @@ test expect {
                 no (Board.squares[1][2]).cell - c
             } 
         }
-    } for optimizer4 is theorem 
+    } for 7 Cell for optimizer4 is theorem 
 
-//     pushedUpTest: {
-//         wellFormed[4]
-//         some (Board.squares[0][0]).cell
-//         some (Board.squares[2][3]).cell
-//         no (Board.squares[2][2]).cell
-//     }  for 16 Square, 16 Cell is unsat 
+    pushedRightTestSat: {
+        some c: Cell {
+            pushed[Right, c]
+            wellFormed[4]
+            some (Board.squares[0][0]).cell - c
+            some (Board.squares[2][3]).cell - c
+            no (Board.squares[2][2]).cell - c
+        }
+    } for 7 Cell for optimizer4 is sat
 
-//     guardTest1: {
-//         {
-//             wellFormed[4]
-//             guard[Right]
-//             guard[Left]
-//             guard[Up]
-//             guard[Down]
-//             #(Square.cell) = 1
-//         } => {
-//             some Board.squares[1][1] or some Board.squares[1][2] or 
-//             some Board.squares[2][1] or some Board.squares[2][2]
-//         }
-//     } for 16 Square, 1 Cell is theorem
+    pushedUpTest: {
+        some c: Cell {
+            pushed[Up, c]
+            wellFormed[4]
+            some (Board.squares[2][3]).cell - c
+            no (Board.squares[2][2]).cell - c
+        }
+    }  for 7 Cell for optimizer4 is unsat 
 
-//     LockoutTest: {
-//         {
-//             wellFormed[3]
-//             (Board.squares[0][0]).cell.value = 1
-//             (Board.squares[1][0]).cell.value = 0
-//             (Board.squares[2][0]).cell.value = 1
-//             (Board.squares[0][1]).cell.value = 0
-//             (Board.squares[1][1]).cell.value = 1
-//             (Board.squares[2][1]).cell.value = 0
-//             (Board.squares[0][2]).cell.value = 1
-//             (Board.squares[1][2]).cell.value = 0
-//             (Board.squares[2][2]).cell.value = 1
-//         } => {
-//             no dir: Direction | {guard[dir]}
-//         }
-//     }for 9 Square, 9 Cell is theorem 
+    guardTest1: {
+        {
+            wellFormed[4]
+            guard[Right]
+            guard[Left]
+            guard[Up]
+            guard[Down]
+            #(Square.cell) = 1
+        } => {
+            some Board.squares[1][1] or some Board.squares[1][2] or 
+            some Board.squares[2][1] or some Board.squares[2][2]
+        }
+    } for optimizer4 is theorem
 
-//     rowColPreservedTest: {
-//         // Right and left are equivalent
-//         wellFormed[4] => {
-//             { 
-//                 rowColPreserved[Right]
-//             } <=> {
-//                 rowColPreserved[Left]
-//             }
-//             {
-//                 rowColPreserved[Up]
-//             } <=> {
-//                 rowColPreserved[Down]
-//             }
+    guardTest1Sat: {
+        wellFormed[4]
+        guard[Right]
+        guard[Left]
+        guard[Up]
+        guard[Down]
+        #(Square.cell) = 1
+    } for optimizer4 is sat
 
-//             all c: Square.cell {
-//                 {
-//                     some c.child and c.child in Square.cell'
-//                     rowColPreserved[Down]
-//                     (Board.squares[0][0]).cell.value = c
-//                 } => {
-//                     c.child in (Board.squares[0][Int]).cell.value
-//                 }
-//             }
-//         }
-//     } for 16 Square, 5 Cell is theorem 
+    LockoutTest: {
+        {
+            wellFormed[3]
+            (Board.squares[0][0]).cell.value = 1
+            (Board.squares[1][0]).cell.value = 0
+            (Board.squares[2][0]).cell.value = 1
+            (Board.squares[0][1]).cell.value = 0
+            (Board.squares[1][1]).cell.value = 1
+            (Board.squares[2][1]).cell.value = 0
+            (Board.squares[0][2]).cell.value = 1
+            (Board.squares[1][2]).cell.value = 0
+            (Board.squares[2][2]).cell.value = 1
+        } => {
+            no dir: Direction | {guard[dir]}
+        }
+    }for 9 Square, 9 Cell for optimizer3 is theorem 
+
+    LockoutTestSat: {
+        wellFormed[3]
+        (Board.squares[0][0]).cell.value = 1
+        (Board.squares[1][0]).cell.value = 0
+        (Board.squares[2][0]).cell.value = 1
+        (Board.squares[0][1]).cell.value = 0
+        (Board.squares[1][1]).cell.value = 1
+        (Board.squares[2][1]).cell.value = 0
+        (Board.squares[0][2]).cell.value = 1
+        (Board.squares[1][2]).cell.value = 0
+        (Board.squares[2][2]).cell.value = 1
+    } for 9 Square, 9 Cell for optimizer3 is sat
+
+    rowColPreservedTest: {
+        // Right and left are equivalent
+        wellFormed[4] => {
+            { 
+                rowColPreserved[Right]
+            } <=> {
+                rowColPreserved[Left]
+            }
+            {
+                rowColPreserved[Up]
+            } <=> {
+                rowColPreserved[Down]
+            }
+
+            all c: Square.cell {
+                {
+                    some c.child and c.child in Square.cell'
+                    rowColPreserved[Down]
+                    (Board.squares[0][0]).cell.value = c
+                } => {
+                    c.child in (Board.squares[0][Int]).cell.value
+                }
+            }
+        }
+    } for 16 Square, 5 Cell for optimizer4 is theorem 
+
+    mergeOrMaintainTest: {
+        all c: Cell | {{mergeOrMaintain[c] and wellFormed[4]} => {
+            c not in Square.cell // Added not in original
+            c in Square.cell' // Added in new
+            #{Square.cell} >= #{Square.cell' - c} // Number of non-added cells goes down or equal
+
+            all c2: Square.cell' - c{
+                c2 in Square.cell or {some c2.parents and c2.parents in Square.cell} // Either from original, or parents are in it
+                not (c2 in Square.cell and {some c2.parents and c2.parents in Square.cell})
+            }
+        }}
+    } for 16 Square, 8 Cell for optimizer4 is theorem
+
+    mergeOrMaintainTestSat: {
+        some c: Cell | {mergeOrMaintain[c] and wellFormed[4]}
+    } for 16 Square, 8 Cell for optimizer4 is sat
+
+    forceMergeTest: {
+        {
+            wellFormed[4]
+            forceMerge[Right]
+            some c: Cell | mergeOrMaintain[c] // forceMerge assumes mergeOrMaintain
+            // First row
+            (Board.squares[0][0]).cell.value = 1
+            (Board.squares[1][0]).cell.value = none
+            (Board.squares[2][0]).cell.value = none
+            (Board.squares[3][0]).cell.value = 1
+            // // Second row 
+            // (Board.squares[0][1]).cell.value = 2
+            // (Board.squares[1][1]).cell.value = 2
+            // (Board.squares[2][1]).cell.value = none
+            // (Board.squares[3][1]).cell.value = 2
+
+            // // Third row 
+            // (Board.squares[0][2]).cell.value = 1
+            // (Board.squares[1][2]).cell.value = 1
+            // (Board.squares[2][2]).cell.value = 1
+            // (Board.squares[3][2]).cell.value = 1
+        } => {
+            // First row results
+            some (Board.squares[0][0]).cell.child
+            (Board.squares[0][0]).cell.child = (Board.squares[3][0]).cell.child
+            (Board.squares[0][0]).cell.child in Square.cell'
+
+            // // Second row results
+            // some (Board.squares[2][1]).cell.child
+            // (Board.squares[1][1]).cell.child = (Board.squares[3][1]).cell.child
+            // (Board.squares[0][0]).cell.child in Square.cell'
+            // no (Board.squares[0][1]).cell.child or (Board.squares[0][1]).cell.child not in Square.cell'
+
+            // // Third row results
+            // some (Board.squares[2][2]).cell.child
+            // some (Board.squares[1][2]).cell.child
+            // (Board.squares[0][2]).cell.child = (Board.squares[1][2]).cell.child
+            // (Board.squares[2][2]).cell.child = (Board.squares[3][2]).cell.child
+            // (Board.squares[0][2]).cell.child in Square.cell'
+            // (Board.squares[2][2]).cell.child in Square.cell'
+        }
+    } for 16 Square, 5 Cell for optimizer4 is theorem
+
+    forceMergeTestSat: {
+        wellFormed[4]
+        forceMerge[Right]
+        some c: Cell | mergeOrMaintain[c] // forceMerge assumes mergeOrMaintain
+        // First row
+        (Board.squares[0][0]).cell.value = 1
+        (Board.squares[1][0]).cell.value = none
+        (Board.squares[2][0]).cell.value = none
+        (Board.squares[3][0]).cell.value = 1
+        // // Second row 
+        // (Board.squares[0][1]).cell.value = 2
+        // (Board.squares[1][1]).cell.value = 2
+        // (Board.squares[2][1]).cell.value = none
+        // (Board.squares[3][1]).cell.value = 2
+
+        // // Third row 
+        // (Board.squares[0][2]).cell.value = 1
+        // (Board.squares[1][2]).cell.value = 1
+        // (Board.squares[2][2]).cell.value = 1
+        // (Board.squares[3][2]).cell.value = 1
+    } for 16 Square, 5 Cell for optimizer4 is sat
 }
