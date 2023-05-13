@@ -2,7 +2,7 @@
 
 option problem_type temporal
 option max_tracelength 5
-option min_tracelength 1
+option min_tracelength 5
 // option solver Glucose
 
 /**
@@ -76,6 +76,22 @@ pred fourByFour[size: Int] {
         }
     }
 }
+
+/**
+ * Potential optimizer for the board.
+ */ 
+// inst optimizer {
+//     -- Upper-bound on the board relation: don't even try to use
+//     -- a row, column, or value that's outside the interval [1, 9]
+//     board in BoardState -> 
+//              (1 + 2 + 3 + 4) -> 
+//              (1 + 2 + 3 + 4) -> 
+//              (1 + 2 + 3 + 4)
+
+//     -- encode the set of values in bounds, not constraints
+//     Helper = `Helper0
+//     values = Helper -> (1 + 2 + 3 + 4)
+// }
 
 /**
  * Checks that the grid of size `size` has properly aligned direction orderings
@@ -313,9 +329,11 @@ pred wellFormed[size: Int] {
 }
 
 /**
-    Traces predicate. Takes all well-formedness conditions, along with initilization,
-    and checks that the state remains constant. 
-*/ 
+ * Traces predicate. Takes all well-formedness conditions, along with initilization,
+ * and checks that the state remains constant. 
+
+ * size refers to size of board 
+ */ 
 pred traces[size: Int] {
     wellFormed[size]
     init
@@ -325,7 +343,7 @@ pred traces[size: Int] {
     always {doNothing => always doNothing}
 }
 
-// run {
-//     traces[4]
-//     eventually {4 in Square.cell.value}
-// } for exactly 16 Square, 10 Cell
+run {
+    traces[4]
+    eventually {4 in Square.cell.value}
+} for exactly 16 Square, 10 Cell
