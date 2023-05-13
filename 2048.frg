@@ -1,4 +1,4 @@
-#lang forge "final" "nvliavoez7ahtpvr@gmail.com"
+#lang forge "final" "nvliavoez7ahtpvr"
 
 option problem_type temporal
 option max_tracelength 5
