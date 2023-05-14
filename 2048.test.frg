@@ -3,8 +3,8 @@
 open "2048.frg"
 // option solver Glucose
 option problem_type temporal
-option max_tracelength 2
 option min_tracelength 1
+option max_tracelength 2
 
 /**
  * Potential optimizer for the board.
@@ -270,50 +270,29 @@ test expect {
         some c: Cell | {mergeOrMaintain[c] and wellFormed[4]}
     } for 16 Square, 8 Cell for optimizer4 is sat
 
-    forceMergeTest: {
+    forceMergeTest1: {
         {
             wellFormed[4]
             forceMerge[Right]
-            some c: Cell | mergeOrMaintain[c] // forceMerge assumes mergeOrMaintain
+            // forceMerge assumes mergeOrMaintain
+            some c: Cell | mergeOrMaintain[c] 
+            // Also rowColPreserved
+            rowColPreserved[Right]
+
             // First row
             (Board.squares[0][0]).cell.value = 1
             (Board.squares[1][0]).cell.value = none
             (Board.squares[2][0]).cell.value = none
             (Board.squares[3][0]).cell.value = 1
-            // // Second row 
-            // (Board.squares[0][1]).cell.value = 2
-            // (Board.squares[1][1]).cell.value = 2
-            // (Board.squares[2][1]).cell.value = none
-            // (Board.squares[3][1]).cell.value = 2
-
-            // // Third row 
-            // (Board.squares[0][2]).cell.value = 1
-            // (Board.squares[1][2]).cell.value = 1
-            // (Board.squares[2][2]).cell.value = 1
-            // (Board.squares[3][2]).cell.value = 1
         } => {
             // First row results
             some (Board.squares[0][0]).cell.child
             (Board.squares[0][0]).cell.child = (Board.squares[3][0]).cell.child
             (Board.squares[0][0]).cell.child in Square.cell'
-
-            // // Second row results
-            // some (Board.squares[2][1]).cell.child
-            // (Board.squares[1][1]).cell.child = (Board.squares[3][1]).cell.child
-            // (Board.squares[0][0]).cell.child in Square.cell'
-            // no (Board.squares[0][1]).cell.child or (Board.squares[0][1]).cell.child not in Square.cell'
-
-            // // Third row results
-            // some (Board.squares[2][2]).cell.child
-            // some (Board.squares[1][2]).cell.child
-            // (Board.squares[0][2]).cell.child = (Board.squares[1][2]).cell.child
-            // (Board.squares[2][2]).cell.child = (Board.squares[3][2]).cell.child
-            // (Board.squares[0][2]).cell.child in Square.cell'
-            // (Board.squares[2][2]).cell.child in Square.cell'
         }
     } for 16 Square, 5 Cell for optimizer4 is theorem
 
-    forceMergeTestSat: {
+    forceMergeTest1Sat: {
         wellFormed[4]
         forceMerge[Right]
         some c: Cell | mergeOrMaintain[c] // forceMerge assumes mergeOrMaintain
@@ -322,16 +301,129 @@ test expect {
         (Board.squares[1][0]).cell.value = none
         (Board.squares[2][0]).cell.value = none
         (Board.squares[3][0]).cell.value = 1
-        // // Second row 
-        // (Board.squares[0][1]).cell.value = 2
-        // (Board.squares[1][1]).cell.value = 2
-        // (Board.squares[2][1]).cell.value = none
-        // (Board.squares[3][1]).cell.value = 2
 
-        // // Third row 
-        // (Board.squares[0][2]).cell.value = 1
-        // (Board.squares[1][2]).cell.value = 1
-        // (Board.squares[2][2]).cell.value = 1
-        // (Board.squares[3][2]).cell.value = 1
     } for 16 Square, 5 Cell for optimizer4 is sat
+
+    forceMergeTest2: {
+        {
+            wellFormed[4]
+            forceMerge[Down]
+            // forceMerge assumes mergeOrMaintain
+            some c: Cell | mergeOrMaintain[c] 
+            // Also rowColPreserved
+            rowColPreserved[Down]
+
+            // Second col 
+            (Board.squares[1][0]).cell.value = 2
+            (Board.squares[1][1]).cell.value = 2
+            (Board.squares[1][2]).cell.value = none
+            (Board.squares[1][3]).cell.value = 2
+        } => {
+            // Second col results
+            some (Board.squares[1][3]).cell.child
+            (Board.squares[1][3]).cell.child = (Board.squares[1][1]).cell.child
+            (Board.squares[1][3]).cell.child in Square.cell'
+            no (Board.squares[0][1]).cell.child or (Board.squares[0][1]).cell.child not in Square.cell'
+        }
+    } for 16 Square, 5 Cell for optimizer4 is theorem
+
+    forceMergeTest2Sat: {
+        wellFormed[4]
+        forceMerge[Down]
+        // forceMerge assumes mergeOrMaintain
+        some c: Cell | mergeOrMaintain[c] 
+        // Also rowColPreserved
+        rowColPreserved[Down]
+
+        // Second col 
+        (Board.squares[1][0]).cell.value = 2
+        (Board.squares[1][1]).cell.value = 2
+        (Board.squares[1][2]).cell.value = none
+        (Board.squares[1][3]).cell.value = 2
+    } for 16 Square, 5 Cell for optimizer4 is sat
+
+    forceMergeTest3: {
+        {
+            wellFormed[4]
+            forceMerge[Left]
+            // forceMerge assumes mergeOrMaintain
+            some c: Cell | mergeOrMaintain[c] 
+            // Also rowColPreserved
+            rowColPreserved[Left]
+
+            // Third row 
+            (Board.squares[0][2]).cell.value = 1
+            (Board.squares[1][2]).cell.value = 1
+            (Board.squares[2][2]).cell.value = 1
+            (Board.squares[3][2]).cell.value = 1
+        } => {
+            // Third row results
+            some (Board.squares[2][2]).cell.child
+            some (Board.squares[1][2]).cell.child
+            (Board.squares[0][2]).cell.child in Square.cell'
+            (Board.squares[2][2]).cell.child in Square.cell'
+        }
+    } for 16 Square, 7 Cell for optimizer4 is theorem
+
+    forceMergeTest3Sat: {
+        wellFormed[4]
+        forceMerge[Left]
+        // forceMerge assumes mergeOrMaintain
+        some c: Cell | mergeOrMaintain[c] 
+        // Also rowColPreserved
+        rowColPreserved[Left]
+
+        // Third row 
+        (Board.squares[0][2]).cell.value = 1
+        (Board.squares[1][2]).cell.value = 1
+        (Board.squares[2][2]).cell.value = 1
+        (Board.squares[3][2]).cell.value = 1
+    } for 16 Square, 7 Cell for optimizer4 is sat
+
+    swipeTest1: {
+        {
+            wellFormed[4]
+            some c: Cell | swipe[Down, c]
+            (Board.squares[0][0]).cell.value = 1
+            (Board.squares[0][1]).cell.value = none
+            (Board.squares[0][2]).cell.value = 1
+            (Board.squares[0][3]).cell.value = 2
+        } => {
+            (Board.squares[0][2]).cell'.value = 2
+            (Board.squares[0][3]).cell'.value = 2
+        }
+    } for 16 Square, 7 Cell for optimizer4 is theorem
+
+    swipeTest1Sat: {
+        wellFormed[4]
+        some c: Cell | swipe[Down, c]
+        (Board.squares[0][0]).cell.value = 1
+        (Board.squares[0][1]).cell.value = none
+        (Board.squares[0][2]).cell.value = 1
+        (Board.squares[0][3]).cell.value = 2
+    } for 16 Square, 7 Cell for optimizer4 is sat
+
+    swipeTest2: {
+        {
+            wellFormed[4]
+            some c: Cell | swipe[Down, c]
+            (Board.squares[0][0]).cell.value = 1
+            (Board.squares[0][1]).cell.value = 2
+            (Board.squares[0][2]).cell.value = 2
+            (Board.squares[0][3]).cell.value = 2
+        } => {
+            (Board.squares[0][1]).cell'.value = 1
+            (Board.squares[0][2]).cell'.value = 2
+            (Board.squares[0][3]).cell'.value = 3
+        }
+    } for 16 Square, 7 Cell for optimizer4 is theorem
+
+    swipeTest2: {
+        wellFormed[4]
+        some c: Cell | swipe[Down, c]
+        (Board.squares[0][0]).cell.value = 1
+        (Board.squares[0][1]).cell.value = 2
+        (Board.squares[0][2]).cell.value = 2
+        (Board.squares[0][3]).cell.value = 2
+    } for 16 Square, 7 Cell for optimizer4 is sat
 }

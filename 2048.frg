@@ -144,6 +144,9 @@ pred cellWellFormed {
     // location is inverse as expected
     always cell = ~location
 
+    // Never a cell and it's child at the same time. 
+    always {all c: Cell | c in Square.cell => no c.child or c.child not in Square.cell}
+
     // Value positive
     Cell.value > 0
 }
