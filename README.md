@@ -1,6 +1,20 @@
 # Modelling 2048 in Forge
 
-The goal of this project was to model the classic iPhone game 2048 using forge.
+#### Ethan Bove (ebove), Valentina Lin (vlin10)
+
+The goal of this project was to model the classic game 2048 using Forge.
+
+[CSCI 1710: Spring 2023](https://csci1710.github.io//2023/)
+|
+[GitHub](https://github.com/bove1/csci1710-2048)
+|
+[Forge](https://csci1710.github.io/forge-documentation/home.html)
+
+_With special thanks to [Tim Nelson](https://github.com/tnelson/Forge/tree/main)._
+
+---
+
+## User Guide
 
 ## Overview of the model
 
@@ -27,7 +41,35 @@ We then move onto our transition predicates. Because the basic transition predic
  This strict separation of requirements was the result of a much more lax original plan. At first, all the above sigs were bundled together into `swipe` alone. While a good idea on the surface, this quickly became far more confusing. Our new implementation also has the benefit of significantly easier unit testing. 
 
  We also made a later change to account for variable board sizing. Where relevant, predicates will have a `size: Int` parameter, which determines the size of the board that the user will generate. Most testing is done on a 4x4 grid, but there are a few instances where 3x3 and 2x2 boards are more insightful (and who's statespace can be searched by forge in a timely manner). 
+ 
+---
 
-## Understanding the Model
+## Visualization
 
 As with most Forge models, the graph and table view are virtually useless. Thus, we provide a custom visualization for the data. To use the vis script, simply paste it from the `2048.frg` file into the document 
+
+---
+
+## Properties of the Game
+
+- At some point in every game, provided there is directional movement, there should be an increase in cell value
+- The board should never be empty
+- The board should never be identical before and after a move
+- After a number apears, there must always be a cell with a value greater than or equal to it
+- After the squares are all filled and any adjacent cells ahve different values, the game is stuck and can not do anything
+  - Lose condition
+- The board cannot at any point have only four Cells, one on each corner
+- It (should be) possible to have only three Cells, on three of the four corners
+  - Similarly, it should be possible to have only two Cells, both on diagonally opposing and adjacent corners
+
+---
+
+## Development Process
+
+We started the project with the intent of modeling 2048 to the point of being able to reproduce a (presumably) full game. One of the complications we ran into was the complexity of the task---longer traces grew exponentially. 
+
+Referencing the updated optimizer [here](https://github.com/csci1710/public-examples/blob/main/2022/sudoku_opt_viz/sudoku_with_inst_2.frg), we managed to minimize the runtime of many of our tests. 
+
+---
+
+
