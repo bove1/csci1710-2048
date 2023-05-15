@@ -7,7 +7,7 @@ option min_tracelength 1
 option max_tracelength 2
 
 /**
- * Potential optimizer for the board.
+ * Optimizes a 4x4 board
  */ 
 inst optimizer4 {
     Board = `Board0
@@ -51,6 +51,9 @@ inst optimizer4 {
     )
 }
 
+/**
+ * Optimizes a 3x3 board
+ */
 inst optimizer3 {
     Board = `Board0
     Square =    `Square00 + `Square10 + `Square20 +
