@@ -90,6 +90,39 @@ inst optimizer3 {
     )
 }
 
+/**
+ * Optimizes a 2x2 board
+ */
+inst optimizer2 {
+    Board = `Board0
+    Square =    `Square00 + `Square10 + 
+                `Square01 + `Square11 
+
+    squares = Board -> (
+        0 -> (0 -> `Square00 + 1 -> `Square01) + 
+        1 -> (0 -> `Square10 + 1 -> `Square11) 
+    )
+    
+    Right = `Right0
+    Left =  `Left0
+    Up =    `Up0
+    Down =  `Down0
+    Direction = Right + Left + Up + Down
+    ord = `Right0 -> (
+        `Square00 -> `Square10 +
+        `Square01 -> `Square11 
+    ) + `Left0 -> (
+        `Square10 -> `Square00 + 
+        `Square11 -> `Square01 
+    ) + `Up0 -> (
+        `Square01 -> `Square00 + 
+        `Square11 -> `Square10 
+    ) + `Down0 -> (
+        `Square00 -> `Square01 +
+        `Square10 -> `Square11 
+    )
+}
+
 pred alwaysLargerNum {
     always {
         all i: Square.cell.value | {
@@ -144,8 +177,10 @@ test expect {
 
     optFourByFour4: {fourByFour[4]} for optimizer4 is theorem
     optFourByFour3: {fourByFour[3]} for optimizer3 is theorem
+    optFourByFour3: {fourByFour[2]} for optimizer2 is theorem
     optFourByFour4: {ordered[4]} for optimizer4 is theorem
     optFourByFour3: {ordered[3]} for optimizer3 is theorem
+    optFourByFour3: {ordered[2]} for optimizer3 is theorem
 
     pushedRightTest: {
         all c: Cell {
