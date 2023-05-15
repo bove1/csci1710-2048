@@ -331,6 +331,6 @@ pred traces[size: Int] {
 }
 
 run {
-    traces[3]
-    eventually {3 in Square.cell.value}
+    traces[2]
+    eventually {no d: Dir | guard[d]}
 } for exactly 9 Square, 10 Cell
