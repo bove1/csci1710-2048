@@ -214,7 +214,10 @@ test expect {
     tilesOnThreeCorners: { traces[4] and threeCorners[4] }
         for optimizer4 is sat
 
-    tilesOnTwoCorners: { traces[4] and twoCorners[4] }
+    tilesOnTwoCorners: { traces[4] and twoDiagonalCorners[4] }
+        for optimizer4 is sat
+
+    tilesOnTwoCorners: { traces[4] and twoAdjacentCorners[4] }
         for optimizer4 is sat
 
     
