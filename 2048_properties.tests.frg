@@ -33,45 +33,45 @@ pred boardChanges {
 -- after the squares are all filled and all adjacent cells have different values, 
 -- the game is stuck and can not do anything 
 -- lose condition
-pred gameStuck[size: Int] {
-    #{Square.cell} = Square
-    // for any two coordinates, such that the coordinates are unique...
-    all c1, r1, c2, r2 : Int | ((r1 != r2 or c1 != c2) 
-    // ...and on the board...
-        and (onTheBoard[c1,r1,c2,r2,size]) 
-    // ...and all adjacent cells have different values...
-        and differentAdjacent[c1,r1,c2,r2]) implies {
-    // the game is now stuck
-        always {
-            Board' = Board
-        }
-    }
-}
+// pred gameStuck[size: Int] {
+//     #{Square.cell} = Square
+//     // for any two coordinates, such that the coordinates are unique...
+//     all c1, r1, c2, r2 : Int | ((r1 != r2 or c1 != c2) 
+//     // ...and on the board...
+//         and (onTheBoard[c1,r1,c2,r2,size]) 
+//     // ...and all adjacent cells have different values...
+//         and differentAdjacent[c1,r1,c2,r2]) implies {
+//     // the game is now stuck
+//         always {
+//             Board' = Board
+//         }
+//     }
+// }
 
-pred differentAdjacent[c1 : Int, r1: Int, c2: Int, r2: Int] {
-    let row_dif = absDifference[r1,r2] | {
-      let col_dif = absDifference[c1,c2] | {
-        //they are adjacent
-        ((row_dif = col_dif) or (row_dif = 0) or (col_dif = 0)) and
-        //they have different values
-        (not ((Board.squares[c1][r1]).cell.value = (Board.squares[c2][r2]).cell.value))
-      } 
-    }
-}
+// pred differentAdjacent[c1 : Int, r1: Int, c2: Int, r2: Int] {
+//     let row_dif = absDifference[r1,r2] | {
+//       let col_dif = absDifference[c1,c2] | {
+//         //they are adjacent
+//         ((row_dif = col_dif) or (row_dif = 0) or (col_dif = 0)) and
+//         //they have different values
+//         (not ((Board.squares[c1][r1]).cell.value = (Board.squares[c2][r2]).cell.value))
+//       } 
+//     }
+// }
 
-pred onTheBoard[c1: Int, r1: Int, c2: Int, r2: Int, size: Int] {
-    validCoord[c1, size] and validCoord[r1, size] and validCoord[c2, size] and validCoord[r2, size]
-}
+// pred onTheBoard[c1: Int, r1: Int, c2: Int, r2: Int, size: Int] {
+//     validCoord[c1, size] and validCoord[r1, size] and validCoord[c2, size] and validCoord[r2, size]
+// }
 
-pred validCoord[coord: Int, size: Int] {
-    (coord > 0) and (coord < size)
-}
+// pred validCoord[coord: Int, size: Int] {
+//     (coord > 0) and (coord < size)
+// }
 
-fun absDifference(m: Int, n: Int): Int {
-  let difference = subtract[m, n] {
-    difference > 0 => difference else subtract[0, difference]
-  }
-}
+// fun absDifference(m: Int, n: Int): Int {
+//   let difference = subtract[m, n] {
+//     difference > 0 => difference else subtract[0, difference]
+//   }
+// }
 
 -- Can the board have 4 tiles, all the same number, in a 4x4 subgrid?
 -- Yes
@@ -201,7 +201,7 @@ test expect {
     boardChangesAfterMove: {traces[4] implies boardChanges }
         for optimizer4 is theorem
     
-    loseGamePossible: { traces[2] and gameStuck[2] }
+    loseGamePossible: { traces[2] and eventually { no d : Direction | {guard[d]} } }
         for optimizer2 is sat
 
     canHave4ofSameTile: {traces[4] and monozygoticSiblings } 
