@@ -91,15 +91,17 @@ inst optimizer3 {
 }
 
 test expect {
-//     twoByTwo: {
-//         fourByFour[2] => {
-//             #Square = 4
-//             some Board.squares[0][1]
-//             some Board.squares[1][0]
-//             no Board.squares[0][2]
-//             no Board.squares[2][0]
-//         }
-//     } for 16 Square, 0 Cell is theorem
+    twoByTwo: {
+        fourByFour[2] => {
+            #Square = 4
+            some Board.squares[0][1]
+            some Board.squares[1][0]
+            no Board.squares[0][2]
+            no Board.squares[2][0]
+        }
+    } for 16 Square, 0 Cell is theorem
+
+// These tests are extremely slow, so commented out for now. 
 
 //     threeByThree: {
 //         fourByFour[3] => {
@@ -123,14 +125,14 @@ test expect {
 //         }
 //     } for exactly 16 Square, 0 Cell is theorem
 
-    // orderedTest: {
-    //     {ordered[4] and fourByFour[4]} => {
-    //         all dir: Direction {
-    //             #(dir.ord) = 12
-    //             #{s: Square | no s.(dir.ord)} = 4
-    //         }
-    //     }
-    // } for exactly 16 Square, 0 Cell is theorem
+    orderedTest: {
+        {ordered[3] and fourByFour[3]} => {
+            all dir: Direction {
+                #(dir.ord) = 6
+                #{s: Square | no s.(dir.ord)} = 3
+            }
+        }
+    } for exactly 9 Square, 0 Cell is theorem
 
     optFourByFour4: {fourByFour[4]} for optimizer4 is theorem
     optFourByFour3: {fourByFour[3]} for optimizer3 is theorem
