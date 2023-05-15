@@ -14,12 +14,16 @@ pred increaseEventually {
 
 -- the board should never be empty
 pred neverEmpty {
-    always {#{Cell}>0}
+    always { #{Square.cell} > 0 }
 }
 
 -- the board should never be identical before and after a move
 pred boardChanges {
-   swipe => not (Board' = Board)
+    always {
+        some d: Direction, c: Cell | {
+            swipe[d,c] => not (Square.cell' = Square.cell)
+        }
+    }
 }
 
 -- after a number appears, there must always be a cell with a value greater than or equal to it
@@ -31,25 +35,35 @@ pred boardChanges {
 -- lose condition
 pred gameStuck[size: Int] {
     #{Square.cell} = Square
-    // for any two coordinates, such that the coordinates are on the board
-    all row1, col1, row2, col2 : Int | ((row1 != row2 or col1 != col2) 
-        and (onTheBoard[row1, size]) and (onTheBoard[col1, size]) 
-        and (ontheBoard[row2,size]) and (onTheBoard[col2,size])) implies {
-        // 
-
-    let row_dif = absDifference[row1,row2] | {
-      let col_dif = absDifference[col1,col2] | {
-        ((row_dif = col_dif) or (row_dif = 0) or (col_dif = 0) ) implies {
-          not (some Board.position[row1][col1] and some Board.position[row2][col2])
+    // for any two coordinates, such that the coordinates are unique...
+    all c1, r1, c2, r2 : Int | ((r1 != r2 or c1 != c2) 
+    // ...and on the board...
+        and (onTheBoard[c1,r1,c2,r2,size]) 
+    // ...and all adjacent cells have different values...
+        and differentAdjacent[c1,r1,c2,r2]) implies {
+    // the game is now stuck
+        always {
+            Board' = Board
         }
-      } 
     }
-  }
 }
 
-pred 
+pred differentAdjacent[c1 : Int, r1: Int, c2: Int, r2: Int] {
+    let row_dif = absDifference[r1,r2] | {
+      let col_dif = absDifference[c1,c2] | {
+        //they are adjacent
+        ((row_dif = col_dif) or (row_dif = 0) or (col_dif = 0)) and
+        //they have different values
+        (not ((Board.squares[c1][r1]).value = (Board.squares[c2][r2]).value))
+      } 
+    }
+}
 
-pred onTheBoard[coord: Int, size: Int] {
+pred onTheBoard[c1: Int, r1: Int, c2: Int, r2: Int, size: Int] {
+    validCoord[c1, size] and validCoord[r1, size] and validCoord[c2, size] and validCoord[r2, size]
+}
+
+pred validCoord[coord: Int, size: Int] {
     (coord > 0) and (coord < size)
 }
 
@@ -62,23 +76,29 @@ fun absDifference(m: Int, n: Int): Int {
 -- Can the board have 4 tiles, all the same number, in a 4x4 subgrid?
 -- Yes
 pred monozygoticSiblings {
-    eventually { 
-        some c1, c2, c3, c4 : Cell | {
-            c1.value = c2.value and c2.value = c3.value and c3.value = c4.value
-        }
+    some c1, c2, c3, c4 : Cell | {
+        c1 in Square.cell
+        c2 in Square.cell
+        c3 in Square.cell
+        c4 in Square.cell
+
+        c1.value = c2.value
+        c2.value = c3.value 
+        c3.value = c4.value
     }
 }
 
 -- the board should not be able to have only four cells, one on each corner
 pred fourCorners[size: Int] {
-    eventually {
-        #{Cell} = 4
-        some b : Board | {
-            some (Board.squares[0][0]).cell
-            some (Board.squares[0][size-1]).cell
-            some (Board.squares[size-1][0]).cell
-            some (Board.squares[size-1][size-1]).cell
-        }
+    #{Square.cell} = 4
+    some b : Board | {
+        // (Board.squares).(cell.location) = col -> row
+        // ((Board.squares).(cell.location)).Int = col
+        // Int.((Board.squares).(cell.location)) = row
+        some (Board.squares[0][0]).cell
+        some (Board.squares[0][size-1]).cell
+        some (Board.squares[size-1][0]).cell
+        some (Board.squares[size-1][size-1]).cell
     }
 }
 
@@ -96,30 +116,53 @@ pred threeCorners[size: Int] {
     0 0 0 0
     0 0 0 1
  */
-    eventually {
-        #{Cell} = 3
-        some b : Board | {
-            some (Board.squares[0][0]).cell
-            some (Board.squares[0][size-1]).cell
-            some (Board.squares[size-1][0]).cell
-        }
+    #{Square.cell} = 3
+    some b : Board | {
+        // not [0][0]
+        ((some (Board.squares[0][size-1]).cell
+        and some (Board.squares[size-1][0]).cell
+        and some (Board.squares[size-1][size-1]).cell) 
+        or
+        // not [0][size-1]
+        (some (Board.squares[0][0]).cell
+        and some (Board.squares[size-1][0]).cell
+        and some (Board.squares[size-1][size-1]).cell)
+        or
+        // not [size-1][0]
+        (some (Board.squares[0][0]).cell
+        and some (Board.squares[0][size-1]).cell
+        and some (Board.squares[size-1][size-1]).cell)
+        or
+        // not [size-1][size-1]
+        (some (Board.squares[0][0]).cell
+        and some (Board.squares[0][size-1]).cell
+        and some (Board.squares[size-1][0]).cell))
     }
 }
 
 -- the board should be able to have two cells on diagonally opposing corners
-pred twoCorners[size: Int] {
-    eventually {
-        #{Cell} = 4
-        some b : Board | {
-            some (Board.squares[0][0]).cell
-            some (Board.squares[0][size-1]).cell
-            some (Board.squares[size-1][0]).cell
-            some (Board.squares[size-1][size-1]).cell
-        }
+pred twoDiagonalCorners[size: Int] {
+    #{Square.cell} = 2
+    some b : Board | {
+        ((some (Board.squares[0][0]).cell and some (Board.squares[size-1][size-1]).cell)
+        or
+        (some (Board.squares[0][size-1]).cell and some (Board.squares[size-1][0]).cell))
     }
 }
 
 -- the board should be able to have two cells on adjacent corners
+pred twoAdjacentCorners[size: Int] {
+    #{Square.cell} = 2
+    some b : Board | {
+        ((some (Board.squares[0][0]).cell and some (Board.squares[0][size-1]).cell) 
+        or
+        (some (Board.squares[0][size-1]).cell and some (Board.squares[size-1][size-1]).cell)
+        or 
+        (some (Board.squares[size-1][size-1]).cell and some (Board.squares[size-1][0]).cell)
+        or
+        (some (Board.squares[size-1][0]).cell and some (Board.squares[0][0]).cell))
+    }
+}
 
 // What about other arrangements of the same numbers? Ie as a Tetris piece or another size sub grid. 
 // Tetris comes after I figure out how the location system works
@@ -155,9 +198,14 @@ test expect {
     boardIsNeverEmpty: { traces[4] implies neverEmpty }
         for optimizer4 is theorem
 
+    boardChangesAfterMove: {traces[4] implies boardChanges }
+        for optimizer4 is theorem
+    
+    loseGamePossible: { traces[4] and gameStuck[4] }
+        for optimizer4 is theorem
     
 
-    canHave4OfSameTile: {traces[4] and monozygoticSiblings } 
+    canHave4ofSameTile: {traces[4] and monozygoticSiblings } 
         for optimizer4 is sat
     
     tilesOnAllCorners: { traces[4] and fourCorners[4] }
@@ -166,7 +214,10 @@ test expect {
     tilesOnThreeCorners: { traces[4] and threeCorners[4] }
         for optimizer4 is sat
 
-    tilesOnTwoCorners: { traces[4] and twoCorners[4] }
+    tilesOnTwoCorners: { traces[4] and twoDiagonalCorners[4] }
+        for optimizer4 is sat
+
+    tilesOnTwoCorners: { traces[4] and twoAdjacentCorners[4] }
         for optimizer4 is sat
 
     
