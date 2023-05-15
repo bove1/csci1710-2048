@@ -20,13 +20,20 @@ _With special thanks to [Tim Nelson](https://github.com/tnelson/Forge/tree/main)
 
 ### Sigs
 
-The two key sigs used in the project are `Square` and `Cell`. Squares represent the individual locations on the board (in the 4x4 case, 16 of them), whereas the cells represent the blocks that show up in those cells. Importantly, cells also have `child` and `parents` fields, keeping track of what cells formed (or will be formed) from the given cell. 
+The two key sigs used in the project are `Square` and `Cell`. Squares represent the individual locations on the board (in the 4x4 case, there are exactly 16 of them), whereas the cells represent the blocks that show up in those cells. Importantly, cells also have `child` and `parents` fields, keeping track of what cells formed (or will be formed) from the given cell. 
 
 On top of these, we also have the abstract sig `Direction` with one sig implementations for each of the directions the user can swipe in the game. 
 
 This representation came after a few messier solutions. Originally, we hoped to represent the game using only Cells, with vacancies represented as intentional holes in the `Board`'s square function. The `Direction` sig was another late addition. All transition predicates were originally written in four different ways. Not only does the `Direction` sig save space, but it also allows for generalization to more directions (like forward or backward for 3d).
 
-Coordinates are stores as `[column, row]`.
+
+### Notes for developers:
+
+Coordinates are stored as `[column, row]`.
+
+There are cells that are not on the board, to access cells on the board exclusively use `Square.cell`. 
+
+---
 
 ### Predicates
 
@@ -70,7 +77,7 @@ As with most Forge models, the graph and table view are virtually useless. Thus,
 
 We started the project with the intent of modeling 2048 to the point of being able to reproduce a (presumably) full game. One of the complications we ran into was the complexity of the task---longer traces grew exponentially. 
 
-Referencing the updated optimizer [here](https://github.com/csci1710/public-examples/blob/main/2022/sudoku_opt_viz/sudoku_with_inst_2.frg), we managed to minimize the runtime of many of our tests. 
+Referencing the updated optimizer [here](https://github.com/csci1710/public-examples/blob/main/2022/sudoku_opt_viz/sudoku_with_inst_2.frg), we managed to minimize the runtime of many of our tests. (For example, runtimes that lasted upwards of a minute take only a few seconds with the optimizer. There are still tests to make sure the board generates properly, but most of our tests thankfully work with the optimizer.)
 
 ---
 
