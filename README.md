@@ -26,6 +26,8 @@ On top of these, we also have the abstract sig `Direction` with one sig implemen
 
 This representation came after a few messier solutions. Originally, we hoped to represent the game using only Cells, with vacancies represented as intentional holes in the `Board`'s square function. The `Direction` sig was another late addition. All transition predicates were originally written in four different ways. Not only does the `Direction` sig save space, but it also allows for generalization to more directions (like forward or backward for 3d).
 
+Coordinates are stores as `[column, row]`.
+
 ### Predicates
 
 The first few predicates all check well-formedness of the underlying structure of the model. For instance, the `ordered` predicate checks that the orderings designated by `Direction` sigs matches what the user expects. Other facts include checking that `parent` forms a series of binary trees. 
