@@ -90,6 +90,14 @@ inst optimizer3 {
     )
 }
 
+pred alwaysLargerNum {
+    always {
+        all i: Square.cell.value | {
+            always some Int.^(succ + iden) & Square.cell.value
+        }
+    }
+}
+
 test expect {
     twoByTwo: {
         fourByFour[2] => {
@@ -431,4 +439,8 @@ test expect {
         (Board.squares[0][2]).cell.value = 2
         (Board.squares[0][3]).cell.value = 2
     } for 16 Square, 7 Cell for optimizer4 is sat
+
+    alwaysLargerNumTest: {
+        traces[4] => alwaysLargerNum
+    } for 16 Square, 6 Cell for optimizer4 is theorem
 }
