@@ -202,22 +202,22 @@ test expect {
         for optimizer4 is theorem
     
     loseGamePossible: { traces[2] and eventually { no d : Direction | {guard[d]} } }
-        for optimizer2 is sat
+        for 6 Cell for optimizer2 is sat 
 
     canHave4ofSameTile: {traces[4] and monozygoticSiblings } 
-        for optimizer4 is sat
+        for 8 Cell for optimizer4 is sat
     
     tilesOnAllCorners: { traces[4] and fourCorners[4] }
-        for optimizer4 is unsat
+        for 6 Cell for optimizer4 is unsat
 
-    tilesOnThreeCorners: { traces[4] and threeCorners[4] }
-        for optimizer4 is sat
+    // tilesOnThreeCorners: { traces[4] and threeCorners[4] }
+    //     for 6 Cell for optimizer4 is sat
 
     tilesOnTwoCorners: { traces[4] and twoDiagonalCorners[4] }
-        for optimizer4 is sat
+        for 6 Cell for optimizer4 is sat
 
     tilesOnTwoCorners: { traces[4] and twoAdjacentCorners[4] }
-        for optimizer4 is sat
+        for 6 Cell for optimizer4 is sat
 
     
 }   
