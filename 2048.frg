@@ -332,5 +332,5 @@ pred traces[size: Int] {
 
 run {
     traces[2]
-    eventually {no d: Dir | guard[d]}
-} for exactly 9 Square, 10 Cell
+    eventually {no d: Direction | guard[d]}
+} for exactly 4 Square, 4 Cell
