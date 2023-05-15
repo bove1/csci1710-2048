@@ -91,7 +91,7 @@ pred monozygoticSiblings {
 -- the board should not be able to have only four cells, one on each corner
 pred fourCorners[size: Int] {
     #{Square.cell} = 4
-    b : Board | {
+    some b : Board | {
         // (Board.squares).(cell.location) = col -> row
         // ((Board.squares).(cell.location)).Int = col
         // Int.((Board.squares).(cell.location)) = row
@@ -117,7 +117,7 @@ pred threeCorners[size: Int] {
     0 0 0 1
  */
     #{Square.cell} = 3
-    b : Board | {
+    some b : Board | {
         // not [0][0]
         ((some (Board.squares[0][size-1]).cell
         and some (Board.squares[size-1][0]).cell
@@ -143,7 +143,7 @@ pred threeCorners[size: Int] {
 -- the board should be able to have two cells on diagonally opposing corners
 pred twoDiagonalCorners[size: Int] {
     #{Square.cell} = 2
-    b : Board | {
+    some b : Board | {
         ((some (Board.squares[0][0]).cell and some (Board.squares[size-1][size-1]).cell)
         or
         (some (Board.squares[0][size-1]).cell and some (Board.squares[size-1][0]).cell))
@@ -153,7 +153,7 @@ pred twoDiagonalCorners[size: Int] {
 -- the board should be able to have two cells on adjacent corners
 pred twoAdjacentCorners[size: Int] {
     #{Square.cell} = 2
-    b : Board | {
+    some b : Board | {
         ((some (Board.squares[0][0]).cell and some (Board.squares[0][size-1]).cell) 
         or
         (some (Board.squares[0][size-1]).cell and some (Board.squares[size-1][size-1]).cell)
