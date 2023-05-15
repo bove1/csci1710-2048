@@ -1,6 +1,6 @@
 # Modelling 2048 in Forge
 
-#### Ethan Bove (), Valentina Lin (vlin10)
+#### Ethan Bove (ebove), Valentina Lin (vlin10)
 
 The goal of this project was to model the classic game 2048 using Forge.
 
@@ -53,6 +53,11 @@ As with most Forge models, the graph and table view are virtually useless. Thus,
 ## Properties of the Game
 
 - At some point in every game, provided there is directional movement, there should be an increase in cell value
+- The board should never be empty
+- The board should never be identical before and after a move
+- After a number apears, there must always be a cell with a value greater than or equal to it
+- After the squares are all filled and any adjacent cells ahve different values, the game is stuck and can not do anything
+  - Lose condition
 - The board cannot at any point have only four Cells, one on each corner
 - It (should be) possible to have only three Cells, on three of the four corners
   - Similarly, it should be possible to have only two Cells, both on diagonally opposing and adjacent corners
