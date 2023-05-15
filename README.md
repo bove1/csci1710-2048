@@ -61,7 +61,9 @@ As with most Forge models, the graph and table view are virtually useless. Thus,
 
 ## Development Process
 
-We started the project with the intent of 
+We started the project with the intent of modeling 2048 to the point of being able to reproduce a (presumably) full game. One of the complications we ran into was the complexity of the task---longer traces grew exponentially. 
+
+Referencing the updated optimizer [here](https://github.com/csci1710/public-examples/blob/main/2022/sudoku_opt_viz/sudoku_with_inst_2.frg), we managed to minimize the runtime of many of our tests. 
 
 ---
 
