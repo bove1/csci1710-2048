@@ -2,7 +2,7 @@
 
 option problem_type temporal
 option max_tracelength 5
-option min_tracelength 5
+option min_tracelength 2
 // option solver Glucose
 
 /**
@@ -347,6 +347,6 @@ pred traces[size: Int] {
 }
 
 run {
-    traces[4]
-    eventually {4 in Square.cell.value}
-} for exactly 16 Square, 10 Cell
+    traces[3]
+    eventually {3 in Square.cell.value}
+} for exactly 9 Square, 10 Cell

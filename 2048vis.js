@@ -1,6 +1,14 @@
-boardSize = 4
+boardSize = 3
 count = 0
 stage = new Stage()
+
+const colors = {
+    1: "#ede4da",
+    2: "#ede0c8",
+    3: "#f1b179",
+    4: "#f59562",
+    5: "#f57c5f"
+}
 
 for (inst of instances) {
     console.log(inst)
@@ -34,8 +42,8 @@ for (inst of instances) {
                             coords: {x: 100, y:100},
                             height: 30,
                             width: 30,
-                            color: "#fddeb3",
-                            label: v.join(value).tuples()[0].atoms()[0].id().toString()
+                            color: colors[v.join(value).tuples()[0].atoms()[0].id().toString()],
+                            label: 2**v.join(value).tuples()[0].atoms()[0].id().toString()
                         };
                         let square = new Rectangle(squareProps)
                         grid.add({x: c, y: r}, square)
