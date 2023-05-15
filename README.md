@@ -16,8 +16,6 @@ _With special thanks to [Tim Nelson](https://github.com/tnelson/Forge/tree/main)
 
 ## User Guide
 
----
-
 ## Overview of the model
 
 ### Sigs
